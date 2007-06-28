@@ -1,6 +1,6 @@
 %define	name	fwlogwatch
 %define	version	1.1
-%define	release	%mkrel 2
+%define	release	%mkrel 3
 
 Summary:	Firewall log analyzer, report generator and realtime response agent
 Name:		%{name}
@@ -50,10 +50,6 @@ mkdir -p $RPM_BUILD_ROOT%_datadir/locale/{de,ja,pt_BR,sv,zh_CN,zh_TW}/LC_MESSAGE
 
 cp contrib/fwlogwatch.init.redhat %{buildroot}%{_initrddir}/fwlogwatch
 
-#make install INSTALL_DIR=%{buildroot}%{_prefix} \
-#	CONF_DIR=%{buildroot}%{_sysconfdir}
-#make install-config INSTALL_DIR=%{buildroot}%{_prefix} \
-#	CONF_DIR=%{buildroot}%{_sysconfdir}
 %find_lang %{name}
 
 %clean
