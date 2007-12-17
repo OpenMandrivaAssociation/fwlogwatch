@@ -15,7 +15,6 @@ Patch1:		%{name}-0.6-initscript.patch.bz2
 BuildRequires:	flex
 BuildRequires:	gettext
 BuildRequires:	zlib-devel
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Requires(pre):		rpm-helper
 
 %description
