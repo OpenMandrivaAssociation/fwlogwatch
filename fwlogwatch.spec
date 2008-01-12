@@ -1,6 +1,6 @@
 %define	name	fwlogwatch
 %define	version	1.1
-%define	release	%mkrel 3
+%define	release	%mkrel 4
 
 Summary:	Firewall log analyzer, report generator and realtime response agent
 Name:		%{name}
