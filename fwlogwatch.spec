@@ -1,10 +1,10 @@
 Summary:	Firewall log analyzer, report generator and realtime response agent
 Name:		fwlogwatch
-Version:	1.1
-Release:	%mkrel 9
+Version:	1.2
+Release:	%mkrel 1
 Group:		Monitoring
 License:	GPL
-URL:		http://cert.uni-stuttgart.de/projects/fwlogwatch/
+URL:		http://fwlogwatch.inside-security.de/
 Source0:	%{name}-%{version}.tar.bz2
 Source1:	fwlogwatch.init
 Source2:	fwlogwatch.sysconfig
@@ -47,12 +47,12 @@ perl -pi -e "s|iso-8859-1|UTF-8|g" *.c
 # fix encoding
 pushd po
 
-for i in de pt_BR sv; do
+for i in de pt sv; do
     perl -pi -e "s|ISO-8859-1|UTF-8|g" $i.po
     iconv --from-code=ISO-8859-1 --to-code=UTF-8 $i.po > $i.po.new; mv $i.po.new $i.po
 done
 
-for i in de ja pt_BR sv zh_CN zh_TW; do
+for i in de ja pt sv zh_CN zh_TW; do
     msgfmt -v -o $i.mo $i.po
 done
 
@@ -74,9 +74,8 @@ install -m0755 contrib/fwlw_notify %{buildroot}%{_sbindir}
 install -m0755 contrib/fwlw_respond %{buildroot}%{_sbindir}
 install -m0644 fwlogwatch.8 %{buildroot}%{_mandir}/man8
 install -m0644 fwlogwatch.config %{buildroot}%{_sysconfdir}/
-install -m0644 fwlogwatch.template %{buildroot}%{_sysconfdir}/
 
-for i in de ja pt_BR sv zh_CN zh_TW; do
+for i in de ja pt sv zh_CN zh_TW; do
     install -d %{buildroot}%{_datadir}/locale/${i}/LC_MESSAGES
     install -m0644 po/${i}.mo %{buildroot}%{_datadir}/locale/${i}/LC_MESSAGES/fwlogwatch.mo
 done
@@ -96,9 +95,9 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %doc AUTHORS COPYING CREDITS ChangeLog README
 %doc contrib/fwlogsummary.cgi contrib/fwlogsummary_small.cgi
+%doc contrib/fwlogwatch.php contrib/fwlw_notify contrib/fwlw_respond
 %{_initrddir}/%{name}
 %config(noreplace) %{_sysconfdir}/fwlogwatch.config
-%config(noreplace) %{_sysconfdir}/fwlogwatch.template
 %config(noreplace) %{_sysconfdir}/sysconfig/%{name}
 %{_sbindir}/fwlogwatch
 %{_sbindir}/fwlw_notify
