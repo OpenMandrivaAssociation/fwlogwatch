@@ -1,7 +1,7 @@
 Summary:	Firewall log analyzer, report generator and realtime response agent
 Name:		fwlogwatch
-Version:	1.2
-Release:	%mkrel 2
+Version:	1.3
+Release:	1
 Group:		Monitoring
 License:	GPL
 URL:		http://fwlogwatch.inside-security.de/
@@ -13,9 +13,6 @@ BuildRequires:	adns-devel
 BuildRequires:	flex
 BuildRequires:	gettext
 BuildRequires:	zlib-devel
-Requires(post): rpm-helper
-Requires(preun): rpm-helper
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 fwlogwatch produces ipchains, netfilter/iptables, ipfilter, Cisco IOS and
@@ -59,8 +56,6 @@ done
 popd
 
 %install
-rm -rf %{buildroot}
-
 install -d %{buildroot}%{_initrddir}
 install -d %{buildroot}%{_sysconfdir}/sysconfig
 install -d %{buildroot}%{_sbindir}
@@ -88,11 +83,7 @@ done
 %preun
 %_preun_service %{name}
 
-%clean
-rm -rf %{buildroot}
-
 %files -f %{name}.lang
-%defattr(-,root,root,-)
 %doc AUTHORS COPYING CREDITS ChangeLog README
 %doc contrib/fwlogsummary.cgi contrib/fwlogsummary_small.cgi
 %doc contrib/fwlogwatch.php contrib/fwlw_notify contrib/fwlw_respond
