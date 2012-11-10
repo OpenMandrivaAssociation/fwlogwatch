@@ -1,0 +1,234 @@
+diff --git a/Makefile b/Makefile
+index 0adb5c1..f2ab1fe 100644
+--- a/Makefile
++++ b/Makefile
+@@ -11,35 +11,9 @@
+ 
+ # Linux
+ CC = gcc
+-CFLAGS = -DHAVE_ZLIB -DHAVE_GETTEXT -pipe -O2 -Wall #-pedantic -Wpointer-arith #-g #-p
++CFLAGS = $(OPTFLAGS) -DHAVE_ZLIB -DHAVE_GETTEXT -DHAVE_IPV6 -DHAVE_ADNS
+ LDFLAGS = -s #-g #-static -p
+-LIBS = -lcrypt -lz #-ladns #-lc_p
+-
+-# Mac OS X
+-#CC = gcc
+-#CFLAGS = -DHAVE_ZLIB -pipe -O2 -Wall
+-#LIBS = -lz
+-
+-# Solaris
+-#LIBS = -lnsl -lsocket -lcrypt -lz
+-#
+-#CC = gcc
+-#CFLAGS = -DSOLARIS -DHAVE_ZLIB -DHAVE_GETTEXT -pipe -O2 -Wall #-pedantic #-g
+-#LDFLAGS = #-g
+-#
+-#CC = cc
+-#CFLAGS = -DSOLARIS -DHAVE_ZLIB -DHAVE_GETTEXT -v -fast -xCC
+-
+-# OpenBSD
+-#CC = gcc
+-#CFLAGS = -DHAVE_ZLIB -DHAVE_GETTEXT -pipe -O2 -Wall -I/usr/local/include
+-#LIBS = -L/usr/local/lib -lz -lintl
+-
+-# FreeBSD
+-#CC = gcc
+-#CFLAGS = -DHAVE_ZLIB -DHAVE_GETTEXT -pipe -O2 -Wall -I/usr/local/include
+-#LIBS = -L/usr/local/lib -lcrypt -lz -lintl
+-
++LIBS = -lcrypt -lz -ladns
+ 
+ LEX = flex
+ LFLAGS = -B --nounput #-f #-p -p -d
+@@ -48,9 +22,14 @@ INSTALL = install
+ INSTALL_PROGRAM = $(INSTALL) -m 0755
+ INSTALL_SCRIPT = $(INSTALL) -m 0755
+ INSTALL_DATA = $(INSTALL) -m 0644
+-INSTALL_DIR = /usr/local
+-CONF_DIR = /etc
+-LOCALE_DIR = /usr
++INSTALL_DIR = $(INSTALL) -d -m 0755
++CONF_DIR=/etc
++LOCALE_DIR=/usr/share/locale
++SBIN_DIR=/usr/sbin
++MAN_DIR=/usr/share/man
++DESTDIR=
++
++
+ 
+ OBJS = cisco_ios.o cisco_pix.o compare.o ipchains.o ipfilter.o ipfw.o \
+        lancom.o main.o modes.o net.o netfilter.o netscreen.o output.o \
+@@ -85,38 +64,44 @@ fwlogwatch:	$(OBJS)
+ 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+ 
+ install:	all
+-	$(INSTALL_PROGRAM) fwlogwatch $(INSTALL_DIR)/sbin/fwlogwatch
+-	$(INSTALL_SCRIPT) contrib/fwlw_notify $(INSTALL_DIR)/sbin/fwlw_notify
+-	$(INSTALL_SCRIPT) contrib/fwlw_respond $(INSTALL_DIR)/sbin/fwlw_respond
+-	$(INSTALL_DATA) fwlogwatch.8 $(INSTALL_DIR)/share/man/man8/fwlogwatch.8
++	$(INSTALL_DIR) $(DESTDIR)$(SBIN_DIR)
++	$(INSTALL_DIR) $(DESTDIR)$(MAN_DIR)/man8
++	$(INSTALL_PROGRAM) fwlogwatch $(DESTDIR)$(SBIN_DIR)/fwlogwatch
++	$(INSTALL_SCRIPT) contrib/fwlw_notify $(DESTDIR)$(SBIN_DIR)/fwlw_notify
++	$(INSTALL_SCRIPT) contrib/fwlw_respond $(DESTDIR)$(SBIN_DIR)/fwlw_respond
++	$(INSTALL_DATA) fwlogwatch.8 $(DESTDIR)$(MAN_DIR)/man8/fwlogwatch.8
+ 
+ install-config:
+-	$(INSTALL_DATA) fwlogwatch.config $(CONF_DIR)/fwlogwatch.config
++	$(INSTALL_DIR) $(DESTDIR)$(CONF_DIR)
++	$(INSTALL_DATA) fwlogwatch.config $(DESTDIR)$(CONF_DIR)/fwlogwatch.config
++	$(INSTALL_DATA) fwlogwatch.template $(DESTDIR)$(CONF_DIR)/fwlogwatch.template
+ 
+ install-i18n:
+ 	cd po; make
+-	$(INSTALL_DATA) po/de.mo $(LOCALE_DIR)/share/locale/de/LC_MESSAGES/fwlogwatch.mo
+-	$(INSTALL_DATA) po/ja.mo $(LOCALE_DIR)/share/locale/ja/LC_MESSAGES/fwlogwatch.mo
+-	$(INSTALL_DATA) po/pt.mo $(LOCALE_DIR)/share/locale/pt/LC_MESSAGES/fwlogwatch.mo
+-	$(INSTALL_DATA) po/sv.mo $(LOCALE_DIR)/share/locale/sv/LC_MESSAGES/fwlogwatch.mo
+-	$(INSTALL_DATA) po/zh_CN.mo $(LOCALE_DIR)/share/locale/zh_CN/LC_MESSAGES/fwlogwatch.mo
+-	$(INSTALL_DATA) po/zh_TW.mo $(LOCALE_DIR)/share/locale/zh_TW/LC_MESSAGES/fwlogwatch.mo
++	$(INSTALL_DIR) $(DESTDIR)$(LOCALE_DIR)/de/LC_MESSAGES
++	$(INSTALL_DIR) $(DESTDIR)$(LOCALE_DIR)/ja/LC_MESSAGES
++	$(INSTALL_DIR) $(DESTDIR)$(LOCALE_DIR)/pt/LC_MESSAGES
++	$(INSTALL_DIR) $(DESTDIR)$(LOCALE_DIR)/sv/LC_MESSAGES
++	$(INSTALL_DIR) $(DESTDIR)$(LOCALE_DIR)/zh_CN/LC_MESSAGES
++	$(INSTALL_DIR) $(DESTDIR)$(LOCALE_DIR)/zh_TW/LC_MESSAGES
++	$(INSTALL_DATA) po/de.mo $(DESTDIR)$(LOCALE_DIR)/de/LC_MESSAGES/fwlogwatch.mo
++	$(INSTALL_DATA) po/ja.mo $(DESTDIR)$(LOCALE_DIR)/ja/LC_MESSAGES/fwlogwatch.mo
++	$(INSTALL_DATA) po/pt.mo $(DESTDIR)$(LOCALE_DIR)/pt/LC_MESSAGES/fwlogwatch.mo
++	$(INSTALL_DATA) po/sv.mo $(DESTDIR)$(LOCALE_DIR)/sv/LC_MESSAGES/fwlogwatch.mo
++	$(INSTALL_DATA) po/zh_CN.mo $(DESTDIR)$(LOCALE_DIR)/zh_CN/LC_MESSAGES/fwlogwatch.mo
++	$(INSTALL_DATA) po/zh_TW.mo $(DESTDIR)$(LOCALE_DIR)/zh_TW/LC_MESSAGES/fwlogwatch.mo
++	
+ 
+ install-rhinit:
+-	$(INSTALL_SCRIPT) contrib/fwlogwatch.init.redhat $(CONF_DIR)/rc.d/init.d/fwlogwatch
++	$(INSTALL_DIR) $(DESTDIR)$(CONF_DIR)
++	$(INSTALL_SCRIPT) contrib/fwlogwatch.init.redhat $(DESTDIR)$(CONF_DIR)/rc.d/init.d/fwlogwatch
+ 
+ uninstall:
+-	@rm -f $(INSTALL_DIR)/sbin/fwlogwatch \
+-		$(INSTALL_DIR)/sbin/fwlw_notify \
+-		$(INSTALL_DIR)/sbin/fwlw_respond \
+-		$(INSTALL_DIR)/share/man/man8/fwlogwatch.8 \
+-		$(LOCALE_DIR)/share/locale/de/LC_MESSAGES/fwlogwatch.mo \
+-		$(LOCALE_DIR)/share/locale/ja/LC_MESSAGES/fwlogwatch.mo \
+-		$(LOCALE_DIR)/share/locale/pt/LC_MESSAGES/fwlogwatch.mo \
+-		$(LOCALE_DIR)/share/locale/sv/LC_MESSAGES/fwlogwatch.mo \
+-		$(LOCALE_DIR)/share/locale/zh_CN/LC_MESSAGES/fwlogwatch.mo \
+-		$(LOCALE_DIR)/share/locale/zh_TW/LC_MESSAGES/fwlogwatch.mo \
+-		$(CONF_DIR)/fwlogwatch.config \
++	@rm -f $(DESTDIR)/$(SBIN_DIR)fwlogwatch \
++		$(DESTDIR)$(SBIN_DIR)/fwlw_notify \
++		$(DESTDIR)$(SBIN_DIR)/fwlw_respond \
++		$(DESTDIR)$(MAN_DIR)/man8/fwlogwatch.8 \
++		$(DESTDIR)$(LOCALE_DIR)/de/LC_MESSAGES/fwlogwatch.mo \
+ 
+ clean:
+ 	rm -f *.o *~ *.bak fwlogwatch
+diff --git a/README b/README
+index 8dbe95d..280574c 100644
+--- a/README
++++ b/README
+@@ -102,7 +102,7 @@ INSTALLATION
+   read access to the system's standard log file (e.g. /var/log/messages)
+   you can use group permissions. You can also bind a nonprivileged port for
+   the status server. 'make install' will install the binary (in
+-  /usr/local/sbin) and the man page, 'make install-config' will also
++  /usr/sbin) and the man page, 'make install-config' will also
+   install a sample configuration file in /etc.
+ 
+ - Zlib/Gettext/GNU adns
+diff --git a/contrib/fwlogsummary.cgi b/contrib/fwlogsummary.cgi
+index 97af561..b546d84 100644
+--- a/contrib/fwlogsummary.cgi
++++ b/contrib/fwlogsummary.cgi
+@@ -18,7 +18,7 @@ date
+ 
+ RECENT="-l 1h"
+ WEBDIR="/var/www/html/fwlogwatch"
+-FWLOGWATCH="/usr/local/sbin/fwlogwatch"
++FWLOGWATCH="/usr/sbin/fwlogwatch"
+ 
+ if [ ! -d $WEBDIR ] ; then
+   echo "Directory $WEBDIR does not exist!"
+diff --git a/contrib/fwlogsummary_small.cgi b/contrib/fwlogsummary_small.cgi
+index 3a081a1..9e9c70c 100644
+--- a/contrib/fwlogsummary_small.cgi
++++ b/contrib/fwlogsummary_small.cgi
+@@ -4,4 +4,4 @@
+ 
+ echo "Content-Type: text/html"
+ echo
+-/usr/local/sbin/fwlogwatch -w -l 1h -z -s -d
++/usr/sbin/fwlogwatch -w -l 1h -z -s -d
+diff --git a/contrib/fwlogwatch.php b/contrib/fwlogwatch.php
+index f1fec27..045335c 100644
+--- a/contrib/fwlogwatch.php
++++ b/contrib/fwlogwatch.php
+@@ -16,7 +16,7 @@
+ $debug = '0';
+ $logdir = "/var/log";
+ $logbase = messages;
+-$fwlogwatch = "/usr/local/sbin/fwlogwatch";
++$fwlogwatch = "/usr/sbin/fwlogwatch";
+ 
+ /**********************************************************************/
+ 
+diff --git a/fwlogwatch.config b/fwlogwatch.config
+index 21934cc..a85bdc2 100644
+--- a/fwlogwatch.config
++++ b/fwlogwatch.config
+@@ -318,8 +318,8 @@
+ # Alternative paths for the notification and response scripts can be
+ # specified with the 'notification_script' and 'response_script' options.
+ #
+-#notification_script = /usr/local/sbin/fwlw_notify
+-#response_script = /usr/local/sbin/fwlw_respond
++#notification_script = /usr/sbin/fwlw_notify
++#response_script = /usr/sbin/fwlw_respond
+ 
+ # Known hosts are those that will not be warned about or actions taken
+ # against, even if they match the alert/response criteria.
+@@ -346,7 +346,7 @@
+ # Command line option: -X <port>
+ #
+ #server_status = no
+-#bind_to = 127.0.0.1
++bind_to = 127.0.0.1
+ #listen_port = 888
+ #listen_to =
+ #status_user = admin
+diff --git a/main.h b/main.h
+index 95e9b1b..bc5d02f 100644
+--- a/main.h
++++ b/main.h
+@@ -10,16 +10,14 @@
+ 
+ /* Paths */
+ 
+-#define INSTALL_DIR "/usr/local"
+ #define CONF_DIR "/etc"
+-#define LOCALE_DIR "/usr"
+ 
+ /* i18n */
+ 
+ #ifdef HAVE_GETTEXT
+ #include <libintl.h>
+ #define _(String) gettext(String)
+-#define LOCALEDIR LOCALE_DIR "/share/locale"
++#define LOCALEDIR "/usr/share/locale"
+ #else
+ #define _(String) String
+ #endif
+@@ -313,8 +311,8 @@ enum {
+ 
+ #define ALERT 5
+ #define FORGET 86400
+-#define FWLW_NOTIFY INSTALL_DIR "/sbin/fwlw_notify"
+-#define FWLW_RESPOND INSTALL_DIR "/sbin/fwlw_respond"
++#define FWLW_NOTIFY "/usr/sbin/fwlw_notify"
++#define FWLW_RESPOND "/usr/sbin/fwlw_respond"
+ #define STATUS_TITLE _("fwlogwatch status")
+ #define LISTENIF "::1"
+ #define LISTENPORT 888
