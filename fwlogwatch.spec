@@ -1,7 +1,7 @@
 Summary:	Firewall log analyzer, report generator and realtime response agent
 Name:		fwlogwatch
 Version:	1.2
-Release:	9
+Release:	10
 Group:		Monitoring
 License:	GPLv2
 Url:		http://fwlogwatch.inside-security.de/
