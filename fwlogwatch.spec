@@ -1,20 +1,22 @@
 Summary:	Firewall log analyzer, report generator and realtime response agent
 Name:		fwlogwatch
 Version:	1.2
-Release:	11
+Release:	12
 Group:		Monitoring
-License:	GPLv2
-Url:		http://fwlogwatch.inside-security.de/
+License:	GPL
+URL:		http://fwlogwatch.inside-security.de/
 Source0:	%{name}-%{version}.tar.bz2
-Source1:	fwlogwatch.init
-Source2:	fwlogwatch.sysconfig
+Source1:	%{name}.service
+Source2:	%{name}.sysconfig
 Patch0:		fwlogwatch-mdv_conf.diff
-
+BuildRequires:	adns-devel
 BuildRequires:	flex
 BuildRequires:	gettext
-BuildRequires:	adns-devel
 BuildRequires:	pkgconfig(zlib)
-Requires(post,preun):	rpm-helper
+Requires(post,preun): rpm-helper
+Requires(post): systemd-units
+Requires(preun): systemd-units
+Requires(postun): systemd-units
 
 %description
 fwlogwatch produces ipchains, netfilter/iptables, ipfilter, Cisco IOS and
@@ -26,11 +28,9 @@ Finally, it can also run as daemon and report anomalies or start
 countermeasures.
 
 %prep
-%setup -q
-%apply_patches
 
-cp %{SOURCE1} fwlogwatch.init
-cp %{SOURCE2} fwlogwatch.sysconfig
+%setup -q
+%patch0 -p1 -b .paths
 
 chmod 644 contrib/fwlogsummary.cgi contrib/fwlogsummary_small.cgi
 
@@ -46,24 +46,24 @@ sed -i -e "s|iso-8859-1|UTF-8|g" *.c
 pushd po
 
 for i in de pt sv; do
-	sed -i -e "s|ISO-8859-1|UTF-8|g" $i.po
-	iconv --from-code=ISO-8859-1 --to-code=UTF-8 $i.po > $i.po.new; mv $i.po.new $i.po
+    sed -i -e "s|ISO-8859-1|UTF-8|g" $i.po
+    iconv --from-code=ISO-8859-1 --to-code=UTF-8 $i.po > $i.po.new; mv $i.po.new $i.po
 done
 
 for i in de ja pt sv zh_CN zh_TW; do
-	msgfmt -v -o $i.mo $i.po
+    msgfmt -v -o $i.mo $i.po
 done
 
 popd
 
 %install
-install -d %{buildroot}%{_initrddir}
+
 install -d %{buildroot}%{_sysconfdir}/sysconfig
 install -d %{buildroot}%{_sbindir}
 install -d %{buildroot}%{_mandir}/man8
 
-install -m0755 fwlogwatch.init %{buildroot}%{_initrddir}/%{name}
-install -m0644 fwlogwatch.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/%{name}
+install -D -m0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
+install -m0644 %{SOURCE2} %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 
 install -m0755 fwlogwatch %{buildroot}%{_sbindir}
 install -m0755 contrib/fwlw_notify %{buildroot}%{_sbindir}
@@ -72,27 +72,42 @@ install -m0644 fwlogwatch.8 %{buildroot}%{_mandir}/man8
 install -m0644 fwlogwatch.config %{buildroot}%{_sysconfdir}/
 
 for i in de ja pt sv zh_CN zh_TW; do
-	install -d %{buildroot}%{_datadir}/locale/${i}/LC_MESSAGES
-	install -m0644 po/${i}.mo %{buildroot}%{_datadir}/locale/${i}/LC_MESSAGES/fwlogwatch.mo
+    install -d %{buildroot}%{_datadir}/locale/${i}/LC_MESSAGES
+    install -m0644 po/${i}.mo %{buildroot}%{_datadir}/locale/${i}/LC_MESSAGES/fwlogwatch.mo
 done
 
 %find_lang %{name}
 
 %post
-%_post_service %{name}
+if [ $1 -eq 1 ] ; then 
+    # Initial installation 
+    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+fi
 
 %preun
-%_preun_service %{name}
+if [ $1 -eq 0 ] ; then
+    # Package removal, not upgrade
+    /bin/systemctl --no-reload disable %{name}.service > /dev/null 2>&1 || :
+    /bin/systemctl stop %{name}.service > /dev/null 2>&1 || :
+fi
+
+%postun
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+if [ $1 -ge 1 ] ; then
+    # Package upgrade, not uninstall
+    /bin/systemctl try-restart %{name}.service >/dev/null 2>&1 || :
+fi
+
+%clean
 
 %files -f %{name}.lang
 %doc AUTHORS COPYING CREDITS ChangeLog README
 %doc contrib/fwlogsummary.cgi contrib/fwlogsummary_small.cgi
 %doc contrib/fwlogwatch.php contrib/fwlw_notify contrib/fwlw_respond
-%{_initrddir}/%{name}
+%{_unitdir}/%{name}.service
 %config(noreplace) %{_sysconfdir}/fwlogwatch.config
 %config(noreplace) %{_sysconfdir}/sysconfig/%{name}
 %{_sbindir}/fwlogwatch
 %{_sbindir}/fwlw_notify
 %{_sbindir}/fwlw_respond
 %{_mandir}/man8/fwlogwatch.8*
-

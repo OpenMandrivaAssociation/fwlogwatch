@@ -1,0 +1,13 @@
+[Unit]
+Description=Firewall log analysis with realtime response.
+After=network.target
+Wants=iptables.service shorewall.service
+
+[Service]
+Type=forking
+Environment="OPTIONS=-R -A -X 888 -Pn"
+EnvironmentFile=-/etc/sysconfig/fwlogwatch
+ExecStart=/usr/sbin/fwlogwatch $OPTIONS
+
+[Install]
+WantedBy=multi-user.target  
