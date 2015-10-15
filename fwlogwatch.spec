@@ -1,3 +1,5 @@
+%define debug_package %{nil}
+
 Summary:	Firewall log analyzer, report generator and realtime response agent
 Name:		fwlogwatch
 Version:	1.2
