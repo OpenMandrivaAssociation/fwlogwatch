@@ -6,7 +6,7 @@ Version:	1.2
 Release:	19
 Group:		Monitoring
 License:	GPL
-URL:		http://fwlogwatch.inside-security.de/
+URL:		https://fwlogwatch.inside-security.de/
 Source0:	%{name}-%{version}.tar.bz2
 Source1:	%{name}.service
 Source2:	%{name}.sysconfig
